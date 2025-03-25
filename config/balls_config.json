@@ -1,0 +1,16 @@
+{
+  "balls": [
+    {
+      "id": 1,
+      "color": "red",
+      "hsv_mean": [0, 180, 200],
+      "hsv_stddev": [10, 20, 30]
+    },
+    {
+      "id": 2,
+      "color": "blue",
+      "hsv_mean": [100, 180, 180],
+      "hsv_stddev": [10, 20, 30]
+    }
+  ]
+}
