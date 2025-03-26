@@ -21,6 +21,11 @@ public:
     BallTracker(int ball_id, const std::string& color, const cv::Scalar& hsv_mean, const cv::Scalar& hsv_stddev, const cv::Point2d& init_pos);
 
     /**
+     * @brief Destructor for BallTracker.
+     */
+    ~BallTracker();
+
+    /**
      * @brief Detects and updates ball position within the given ROI image.
      * @param roi_image Image segment corresponding to the region of interest.
      * @return True if detection succeeds, false otherwise.
@@ -36,7 +41,7 @@ public:
      * @brief Retrieves the current tracking status of the ball.
      * @return Current BallStatus structure.
      */
-    BallStatus GetStatus() const override;
+    [[nodiscard]] BallStatus GetStatus() const override;
 
 private:
     cv::Scalar hsv_mean_;            ///< Mean HSV values for color detection.
