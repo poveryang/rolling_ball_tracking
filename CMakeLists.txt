@@ -1,7 +1,14 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.10)
 project(RollingBallTracker)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 查找OpenMP
+find_package(OpenMP REQUIRED)
+if(OpenMP_CXX_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 # 设置 OpenCV 路径
 if(WIN32)
@@ -42,6 +49,7 @@ target_link_libraries(ball_tracker
     PUBLIC 
         ${OpenCV_LIBS}
         nlohmann_json::nlohmann_json
+        OpenMP::OpenMP_CXX
 )
 
 # 设置输出目录

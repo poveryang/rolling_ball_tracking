@@ -2,6 +2,7 @@
 #define BALL_TRACKER_ALGO_H
 
 #include <opencv2/opencv.hpp>
+
 #include "ball_tracker_common.h"
 
 /**
@@ -18,7 +19,7 @@ public:
      * @param hsv_stddev Standard deviation of HSV color values for detection.
      * @param init_pos Initial position to start tracking from.
      */
-    BallTracker(int ball_id, const std::string& color, const cv::Scalar& hsv_mean, const cv::Scalar& hsv_stddev, const cv::Point2d& init_pos);
+    BallTracker(int ball_id, const std::string& color, const cv::Scalar_<double>& hsv_mean, const cv::Scalar_<double>& hsv_stddev, const cv::Point_<double>& init_pos);
 
     /**
      * @brief Destructor for BallTracker.
@@ -26,27 +27,22 @@ public:
     ~BallTracker();
 
     /**
-     * @brief Detects and updates ball position within the given ROI image.
-     * @param roi_image Image segment corresponding to the region of interest.
-     * @return True if detection succeeds, false otherwise.
-     */
-    bool DetectAndUpdate(const cv::Mat& roi_image);
-
-    /**
-     * @brief Updates ball position using prediction when detection fails.
-     */
-    void PredictAndUpdate();
-
-    /**
-     * @brief Retrieves the current tracking status of the ball.
-     * @return Current BallStatus structure.
+     * @brief Get current ball status.
+     * @return BallStatus structure.
      */
     [[nodiscard]] BallStatus GetStatus() const override;
 
+    /**
+     * @brief Update ball tracking with new image
+     * @param image Input image
+     * @return true if update was successful, false otherwise
+     */
+    bool UpdateWithImage(const cv::Mat& image) override;
+
 private:
-    cv::Scalar hsv_mean_;            ///< Mean HSV values for color detection.
-    cv::Scalar hsv_stddev_;          ///< HSV standard deviation for color detection.
-    cv::Rect detect_roi_;            ///< Region of interest for detecting the ball.
+    cv::Scalar_<double> hsv_mean_;            ///< Mean HSV values for color detection.
+    cv::Scalar_<double> hsv_stddev_;          ///< HSV standard deviation for color detection.
+    cv::Rect_<int> detect_roi_;            ///< Region of interest for detecting the ball.
     cv::KalmanFilter kalman_filter_; ///< Kalman filter instance for tracking.
     BallStatus ball_status_;         ///< Current ball status data.
 
@@ -58,7 +54,7 @@ private:
      * @param hsv_detected Detected HSV color output.
      * @return True if circle is detected, false otherwise.
      */
-    bool DetectCircle(const cv::Mat& image, cv::Point2f& center, float& radius, cv::Scalar& hsv_detected);
+    bool DetectCircle(const cv::Mat& image, cv::Point_<float>& center, float& radius, cv::Scalar_<double>& hsv_detected);
 
     /**
      * @brief Calculates the color distance between two HSV values.
@@ -66,7 +62,12 @@ private:
      * @param hsv2 Second HSV color.
      * @return Calculated color distance.
      */
-    double ColorDistance(const cv::Scalar& hsv1, const cv::Scalar& hsv2);
+    double ColorDistance(const cv::Scalar_<double>& hsv1, const cv::Scalar_<double>& hsv2);
+
+    /**
+     * @brief Updates ball position using prediction when detection fails.
+     */
+    void PredictAndUpdate();
 };
 
 #endif // BALL_TRACKER_ALGO_H

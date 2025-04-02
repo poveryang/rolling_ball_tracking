@@ -3,3 +3,6 @@
 
 # 忽略 build 目录及其所有内容
 build/
+
+# 忽略 vscode 配置
+.vscode/

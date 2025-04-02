@@ -1,6 +1,15 @@
 #ifndef BALL_TRACKER_COMMON_H
 #define BALL_TRACKER_COMMON_H
 
+#include <string>
+
+// OpenCV前向声明
+namespace cv {
+    class Mat;
+    class KalmanFilter;
+    class VideoCapture;
+}
+
 /**
  * @struct BallStatus
  * @brief Stores the tracking status of an individual ball.
@@ -49,6 +58,13 @@ public:
      * @return BallStatus structure.
      */
     virtual BallStatus GetStatus() const = 0;
+
+    /**
+     * @brief Update ball tracking with new image
+     * @param image Input image
+     * @return true if update was successful, false otherwise
+     */
+    virtual bool UpdateWithImage(const cv::Mat& image) = 0;
 };
 
 #endif // BALL_TRACKER_COMMON_H
