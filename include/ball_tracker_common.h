@@ -37,7 +37,7 @@ struct RobotTarget {
 enum class InitTrackErrorCode {
     SUCCESS = 0,                      ///< Initialization successful.
     CAMERA_NOT_CONNECTED = 1,         ///< Overhead camera is not connected.
-    CAMERA_CAPTURE_ERROR = 2,          ///< Camera image capture failed or invalid.
+    CAMERA_CAPTURE_ERROR = 2,         ///< Camera image capture failed or invalid.
     BALL_NOT_DETECTED_AT_START = 3,   ///< Ball not detected at the initial position.
     BALL_LOST_DURING_TRACKING = 4,    ///< Ball lost during tracking.
     TRACKING_TIMEOUT = 5,             ///< Tracking process timed out.

@@ -76,10 +76,12 @@ public:
 
 private:
     std::vector<std::unique_ptr<IBallTracker>> ball_trackers_;  ///< Trackers for multiple balls
-    BallStatusCallback status_callback_;                        ///< Callback function for ball status updates
+
     bool is_tracking_ = false;                                  ///< Flag indicating if tracking is active
     std::thread tracking_thread_;                               ///< Thread for running the tracking loop
     std::mutex tracking_mutex_;                                 ///< Mutex for thread synchronization
+
+    BallStatusCallback status_callback_;                        ///< Callback function for ball status updates
 
     class CameraImpl;                                           ///< Forward declaration of camera implementation
     std::unique_ptr<CameraImpl> camera_;                        ///< Camera implementation using PIMPL pattern
