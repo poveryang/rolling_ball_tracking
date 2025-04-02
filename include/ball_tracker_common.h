@@ -3,11 +3,9 @@
 
 #include <string>
 
-// OpenCV前向声明
+// Forward declaration of cv::Mat
 namespace cv {
     class Mat;
-    class KalmanFilter;
-    class VideoCapture;
 }
 
 /**
