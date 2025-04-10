@@ -64,7 +64,13 @@ BallTrackerInterface::~BallTrackerInterface() {
     StopTracking();  // 确保在析构时停止跟踪
 }
 
-void BallTrackerInterface::StartTracking() {
+int BallTrackerInterface::InitTrack(const std::string &out_trajectory_file_path)
+{
+    return 0;
+}
+
+void BallTrackerInterface::StartTracking()
+{
     std::lock_guard<std::mutex> lock(tracking_mutex_);
     if (is_tracking_) {
         return;  // 已经在跟踪中
