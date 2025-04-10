@@ -10,8 +10,8 @@ set(BALL_TRACKER_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 设置安装路径为 release
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/release" CACHE PATH "Installation directory" FORCE)
+# 设置基础安装路径
+set(BASE_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist")
 
 # Windows 平台特定配置
 if(WIN32)
@@ -20,9 +20,6 @@ if(WIN32)
     
     # 启用导出宏的生成
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    
-    # 添加预处理器定义
-    add_definitions(-DBALL_TRACKER_EXPORTS)
 endif()
 
 # 查找OpenMP
@@ -34,7 +31,7 @@ endif()
 # 设置 OpenCV 路径
 if(WIN32)
     # Windows 平台下的 OpenCV 路径
-    set(OpenCV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/windows_opencv/build")
+    set(OpenCV_DIR "C:/opencv/build")
 elseif(APPLE)
     # macOS 平台下的 OpenCV 路径（如果使用 Homebrew 安装）
     set(OpenCV_DIR "/opt/homebrew/share/cmake/opencv4")
@@ -62,6 +59,7 @@ add_library(ball_tracker SHARED ${SRC_FILES})
 set_target_properties(ball_tracker PROPERTIES
     VERSION ${BALL_TRACKER_VERSION_MAJOR}.${BALL_TRACKER_VERSION_MINOR}.${BALL_TRACKER_VERSION_PATCH}
     SOVERSION ${BALL_TRACKER_VERSION_MAJOR}
+    DEBUG_POSTFIX "d"  # Debug版本添加'd'后缀
 )
 
 # 设置包含目录
@@ -95,23 +93,24 @@ endif()
 # 安装规则
 install(TARGETS ball_tracker
     EXPORT ball_tracker-targets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    INCLUDES DESTINATION include
+    RUNTIME DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/bin
+    LIBRARY DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib
+    ARCHIVE DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib
+    INCLUDES DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/include
 )
 
 # 安装头文件
-install(DIRECTORY include/
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+install(FILES 
+    include/ball_tracker_interface.h
+    include/ball_tracker_common.h
+    DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/include
 )
 
 # 创建并安装导出文件
 install(EXPORT ball_tracker-targets
     FILE ball_tracker-targets.cmake
     NAMESPACE ball_tracker::
-    DESTINATION lib/cmake/ball_tracker
+    DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib/cmake/ball_tracker
 )
 
 # 创建并安装配置文件
@@ -125,11 +124,11 @@ write_basic_package_version_file(
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ball_tracker-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
-    INSTALL_DESTINATION lib/cmake/ball_tracker
+    INSTALL_DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib/cmake/ball_tracker
 )
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config-version.cmake"
-    DESTINATION lib/cmake/ball_tracker
+    DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib/cmake/ball_tracker
 )
