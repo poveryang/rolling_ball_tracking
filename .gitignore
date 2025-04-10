@@ -1,11 +1,18 @@
-# 忽略 .idea 目录及其所有内容
-.idea/
-
 # 忽略缓存
 .cache
+
+# 忽略 .idea 目录及其所有内容
+.idea/
 
 # 忽略 vscode 配置
 .vscode/
 
+# 忽略 cmake 目录及其所有内容
+cmake/
+
 # 忽略 build 目录及其所有内容
 build/
+
+# 忽略 release 目录及其所有内容
+release/
+

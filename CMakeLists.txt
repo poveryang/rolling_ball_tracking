@@ -1,8 +1,29 @@
 cmake_minimum_required(VERSION 3.10)
-project(RollingBallTracker)
+project(RollingBallTracker VERSION 1.0.0)
 
+# 设置项目版本信息
+set(BALL_TRACKER_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(BALL_TRACKER_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(BALL_TRACKER_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+# 设置 C++ 标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 设置安装路径为 release
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/release" CACHE PATH "Installation directory" FORCE)
+
+# Windows 平台特定配置
+if(WIN32)
+    # 设置运行时库链接方式
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    
+    # 启用导出宏的生成
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    
+    # 添加预处理器定义
+    add_definitions(-DBALL_TRACKER_EXPORTS)
+endif()
 
 # 查找OpenMP
 find_package(OpenMP REQUIRED)
@@ -37,10 +58,17 @@ file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 # 创建共享库
 add_library(ball_tracker SHARED ${SRC_FILES})
 
+# 设置版本信息
+set_target_properties(ball_tracker PROPERTIES
+    VERSION ${BALL_TRACKER_VERSION_MAJOR}.${BALL_TRACKER_VERSION_MINOR}.${BALL_TRACKER_VERSION_PATCH}
+    SOVERSION ${BALL_TRACKER_VERSION_MAJOR}
+)
+
 # 设置包含目录
 target_include_directories(ball_tracker 
     PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
         ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -66,7 +94,42 @@ endif()
 
 # 安装规则
 install(TARGETS ball_tracker
+    EXPORT ball_tracker-targets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include
+)
+
+# 安装头文件
+install(DIRECTORY include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+# 创建并安装导出文件
+install(EXPORT ball_tracker-targets
+    FILE ball_tracker-targets.cmake
+    NAMESPACE ball_tracker::
+    DESTINATION lib/cmake/ball_tracker
+)
+
+# 创建并安装配置文件
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config-version.cmake"
+    VERSION ${BALL_TRACKER_VERSION_MAJOR}.${BALL_TRACKER_VERSION_MINOR}.${BALL_TRACKER_VERSION_PATCH}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ball_tracker-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
+    INSTALL_DESTINATION lib/cmake/ball_tracker
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config-version.cmake"
+    DESTINATION lib/cmake/ball_tracker
 )
