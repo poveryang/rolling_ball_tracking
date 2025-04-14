@@ -64,6 +64,12 @@ BallTrackerInterface::~BallTrackerInterface() {
     StopTracking();  // 确保在析构时停止跟踪
 }
 
+void BallTrackerInterface::SetHeightParameters(const HeightParameters& heights) {
+    height_params_ = heights;
+    // TODO: 在这里可以添加基于高度参数的预计算逻辑
+    // 例如：计算小球的像素大小等
+}
+
 int BallTrackerInterface::InitTrack(const std::string &out_trajectory_file_path)
 {
     return 0;

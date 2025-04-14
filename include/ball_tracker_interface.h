@@ -12,6 +12,16 @@
 #include "ball_tracker_common.h"
 
 /**
+ * @struct HeightParameters
+ * @brief Structure to store height-related parameters for ball tracking
+ */
+struct HeightParameters {
+    double camera_height;      ///< Height of the camera from the ground
+    double track_start_height; ///< Height of the track starting point
+    double track_end_height;   ///< Height of the track ending point
+};
+
+/**
  * @class BallTrackerInterface
  * @brief Interface to manage ball tracking, trajectory initialization, and robot target acquisition.
  */
@@ -74,8 +84,15 @@ public:
      */
     void UnregisterBallStatusCallback();
 
+    /**
+     * @brief Sets the height parameters for the ball tracking system
+     * @param heights Height parameters including camera height and track heights
+     */
+    void SetHeightParameters(const HeightParameters& heights);
+
 private:
     std::vector<std::unique_ptr<IBallTracker>> ball_trackers_;  ///< Trackers for multiple balls
+    HeightParameters height_params_;                             ///< Height parameters for the system
 
     bool is_tracking_ = false;                                  ///< Flag indicating if tracking is active
     std::thread tracking_thread_;                               ///< Thread for running the tracking loop
