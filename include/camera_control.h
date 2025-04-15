@@ -36,13 +36,17 @@ public:
     /**
      * @brief Opens and initializes the camera
      * @param source Camera device ID, video file path, or camera serial number
-     * @param width Desired image width
-     * @param height Desired image height
-     * @param fps Desired frame rate
+     * @param width Desired image width (-1 for default)
+     * @param height Desired image height (-1 for default)
+     * @param fps Desired frame rate (-1 for default)
      * @param source_type Type of camera source
      * @return true if camera was successfully initialized, false otherwise
      */
-    bool Open(const std::string& source, int width, int height, int fps, CameraSourceType source_type = CameraSourceType::USB_CAMERA);
+    bool Open(const std::string& source, 
+             int width = -1, 
+             int height = -1, 
+             int fps = -1, 
+             CameraSourceType source_type = CameraSourceType::USB_CAMERA);
 
     /**
      * @brief Closes the camera and releases resources
@@ -61,6 +65,12 @@ public:
      * @return A string containing camera information
      */
     std::string GetInfo() const;
+
+    // Getter methods for testing
+    bool IsOpen() const { return is_open_; }
+    int GetWidth() const { return width_; }
+    int GetHeight() const { return height_; }
+    int GetFps() const { return fps_; }
 
 private:
     cv::VideoCapture cap_;

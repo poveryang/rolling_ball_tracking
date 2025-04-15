@@ -10,6 +10,12 @@ set(BALL_TRACKER_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# 生成编译命令数据库
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# 启用测试
+enable_testing()
+
 # 设置基础安装路径
 set(BASE_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist")
 
@@ -47,6 +53,17 @@ endif()
 find_package(nlohmann_json REQUIRED)
 if(NOT nlohmann_json_FOUND)
     message(FATAL_ERROR "nlohmann_json not found. Please install nlohmann_json first.")
+endif()
+
+# 设置 GTest 路径
+if(APPLE)
+    set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.16.0/lib/cmake/GTest")
+endif()
+
+# 查找 GTest
+find_package(GTest REQUIRED)
+if(NOT GTest_FOUND)
+    message(FATAL_ERROR "GTest not found. Please install GTest first.")
 endif()
 
 # 收集源文件
@@ -93,24 +110,24 @@ endif()
 # 安装规则
 install(TARGETS ball_tracker
     EXPORT ball_tracker-targets
-    RUNTIME DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/bin
-    LIBRARY DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib
-    ARCHIVE DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib
-    INCLUDES DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/include
+    RUNTIME DESTINATION ${BASE_INSTALL_DIR}/bin
+    LIBRARY DESTINATION ${BASE_INSTALL_DIR}/lib
+    ARCHIVE DESTINATION ${BASE_INSTALL_DIR}/lib
 )
 
 # 安装头文件
 install(FILES 
     include/ball_tracker_interface.h
     include/ball_tracker_common.h
-    DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/include
+    include/camera_control.h
+    DESTINATION ${BASE_INSTALL_DIR}/include
 )
 
 # 创建并安装导出文件
 install(EXPORT ball_tracker-targets
     FILE ball_tracker-targets.cmake
     NAMESPACE ball_tracker::
-    DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib/cmake/ball_tracker
+    DESTINATION ${BASE_INSTALL_DIR}/lib/cmake/ball_tracker
 )
 
 # 创建并安装配置文件
@@ -124,11 +141,14 @@ write_basic_package_version_file(
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ball_tracker-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
-    INSTALL_DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib/cmake/ball_tracker
+    INSTALL_DESTINATION ${BASE_INSTALL_DIR}/lib/cmake/ball_tracker
 )
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config-version.cmake"
-    DESTINATION ${BASE_INSTALL_DIR}/$<LOWER_CASE:$<CONFIG>>/lib/cmake/ball_tracker
+    DESTINATION ${BASE_INSTALL_DIR}/lib/cmake/ball_tracker
 )
+
+# 添加测试子目录
+add_subdirectory(test)

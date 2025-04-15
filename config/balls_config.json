@@ -2,15 +2,9 @@
   "balls": [
     {
       "id": 1,
-      "color": "red",
-      "hsv_mean": [0, 180, 200],
-      "hsv_stddev": [10, 20, 30]
-    },
-    {
-      "id": 2,
-      "color": "blue",
-      "hsv_mean": [100, 180, 180],
-      "hsv_stddev": [10, 20, 30]
+      "color": "green",
+      "hsv_mean": [37.30, 181.83, 252.62],
+      "hsv_stddev": [0.57, 19.56, 1.84]
     }
   ]
 }

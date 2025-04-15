@@ -40,6 +40,13 @@ public:
     ~BallTrackerInterface();
 
     /**
+     * @brief Get the first frame from the camera
+     * @param frame Output frame
+     * @return Whether the frame was successfully captured
+     */
+    bool GetFirstFrame(cv::Mat& frame);
+
+    /**
      * @brief Initializes the track trajectory by running one ball around the track.
      * @param out_trajectory_file_path File path to save the generated trajectory data.
      * @return Initialization status code defined by InitTrackErrorCode.
@@ -90,9 +97,30 @@ public:
      */
     void SetHeightParameters(const HeightParameters& heights);
 
+    /**
+     * @brief Initialize USB camera
+     * @param camera_id Camera ID
+     * @param width Image width
+     * @param height Image height
+     * @param fps Frame rate
+     * @return Whether initialization was successful
+     */
+    bool InitializeCamera(int camera_id, int width = -1, int height = -1, int fps = -1);
+
+    /**
+     * @brief Initialize video file as input source
+     * @param video_path Path to video file
+     * @param width Image width
+     * @param height Image height
+     * @param fps Frame rate
+     * @return Whether initialization was successful
+     */
+    bool InitializeCamera(const std::string& video_path, int width = -1, int height = -1, int fps = -1);
+
 private:
     std::vector<std::unique_ptr<IBallTracker>> ball_trackers_;  ///< Trackers for multiple balls
     HeightParameters height_params_;                             ///< Height parameters for the system
+    std::string balls_config_file_path_;                        ///< Path to the balls configuration file
 
     bool is_tracking_ = false;                                  ///< Flag indicating if tracking is active
     std::thread tracking_thread_;                               ///< Thread for running the tracking loop

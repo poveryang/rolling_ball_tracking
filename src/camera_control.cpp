@@ -32,9 +32,9 @@ bool BallTrackerCamera::Open(const std::string& source, int width, int height, i
             try {
                 int camera_id = std::stoi(source);
                 if (cap_.open(camera_id)) {
-                    cap_.set(cv::CAP_PROP_FRAME_WIDTH, width);
-                    cap_.set(cv::CAP_PROP_FRAME_HEIGHT, height);
-                    cap_.set(cv::CAP_PROP_FPS, fps);
+                    if (width > 0) cap_.set(cv::CAP_PROP_FRAME_WIDTH, width);
+                    if (height > 0) cap_.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+                    if (fps > 0) cap_.set(cv::CAP_PROP_FPS, fps);
                     success = true;
                 }
             } catch (const std::exception& e) {
@@ -44,9 +44,9 @@ bool BallTrackerCamera::Open(const std::string& source, int width, int height, i
 
         case CameraSourceType::VIDEO_FILE:
             if (cap_.open(source)) {
-                cap_.set(cv::CAP_PROP_FRAME_WIDTH, width);
-                cap_.set(cv::CAP_PROP_FRAME_HEIGHT, height);
-                cap_.set(cv::CAP_PROP_FPS, fps);
+                if (width > 0) cap_.set(cv::CAP_PROP_FRAME_WIDTH, width);
+                if (height > 0) cap_.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+                if (fps > 0) cap_.set(cv::CAP_PROP_FPS, fps);
                 success = true;
             }
             break;
@@ -62,13 +62,14 @@ bool BallTrackerCamera::Open(const std::string& source, int width, int height, i
     }
 
     if (success) {
-        // 验证设置是否生效
         if (source_type != CameraSourceType::HUARUI_CAMERA) {
             width_ = static_cast<int>(cap_.get(cv::CAP_PROP_FRAME_WIDTH));
             height_ = static_cast<int>(cap_.get(cv::CAP_PROP_FRAME_HEIGHT));
             fps_ = static_cast<int>(cap_.get(cv::CAP_PROP_FPS));
 
-            if (width_ != width || height_ != height || fps_ != fps) {
+            if ((width > 0 && width_ != width) || 
+                (height > 0 && height_ != height) || 
+                (fps > 0 && fps_ != fps)) {
                 Close();
                 return false;
             }
@@ -108,11 +109,11 @@ bool BallTrackerCamera::Capture(cv::Mat& frame) {
 std::string BallTrackerCamera::GetInfo() const {
     std::stringstream ss;
     ss << "Camera Info:\n"
-       << "Source Type: " << (source_type_ == CameraSourceType::USB_CAMERA ? "USB Camera" : 
-                             source_type_ == CameraSourceType::VIDEO_FILE ? "Video File" : "Huarui Camera") << "\n"
-       << "Source: " << source_path_ << "\n"
-       << "Resolution: " << width_ << "x" << height_ << "\n"
-       << "FPS: " << fps_ << "\n"
-       << "Status: " << (is_open_ ? "Open" : "Closed");
+       << "  Source Type: " << (source_type_ == CameraSourceType::USB_CAMERA ? "USB Camera" : 
+                               source_type_ == CameraSourceType::VIDEO_FILE ? "Video File" : "Huarui Camera") << "\n"
+       << "  Source: " << source_path_ << "\n"
+       << "  Resolution: " << width_ << "x" << height_ << "\n"
+       << "  FPS: " << fps_ << "\n"
+       << "  Status: " << (is_open_ ? "Open" : "Closed");
     return ss.str();
 } 

@@ -39,9 +39,16 @@ public:
      */
     bool UpdateWithImage(const cv::Mat& image) override;
 
+    /**
+     * @brief Get the region of interest (ROI) for the ball tracker.
+     * @return The region of interest as a cv::Rect.
+     */
+    cv::Rect GetROI() const { return detect_roi_; }
+
 private:
     cv::Scalar_<double> hsv_mean_;            ///< Mean HSV values for color detection.
     cv::Scalar_<double> hsv_stddev_;          ///< HSV standard deviation for color detection.
+    cv::Point_<double> init_pos_;            ///< Initial position to start tracking from.
     cv::Rect_<int> detect_roi_;            ///< Region of interest for detecting the ball.
     cv::KalmanFilter kalman_filter_; ///< Kalman filter instance for tracking.
     BallStatus ball_status_;         ///< Current ball status data.

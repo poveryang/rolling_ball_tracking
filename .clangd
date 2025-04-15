@@ -1,0 +1,5 @@
+CompileFlags:
+  Add: 
+    - "-I/opt/homebrew/Cellar/googletest/1.16.0/include"
+    - "-I/opt/homebrew/include"
+    - "-I${workspaceFolder}/include" 
