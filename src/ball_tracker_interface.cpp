@@ -14,7 +14,12 @@ public:
     bool is_initialized = false;
 
     bool Initialize(int camera_id, int width, int height, int fps) {
-        is_initialized = camera.Open(camera_id, width, height, fps);
+        is_initialized = camera.Open(std::to_string(camera_id), width, height, fps, CameraSourceType::USB_CAMERA);
+        return is_initialized;
+    }
+
+    bool Initialize(const std::string& video_path, int width, int height, int fps) {
+        is_initialized = camera.Open(video_path, width, height, fps, CameraSourceType::VIDEO_FILE);
         return is_initialized;
     }
 
