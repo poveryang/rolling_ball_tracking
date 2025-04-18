@@ -9,69 +9,69 @@ protected:
     BallTrackerCamera camera_;
 };
 
-// 测试USB相机基本功能
+// Test basic USB camera functionality
 TEST_F(CameraControlTest, TestUSBCamera) {
-    // 尝试打开USB相机
+    // Try to open USB camera
     if (camera_.Open("0", -1, -1, -1, CameraSourceType::USB_CAMERA)) {
         std::cout << camera_.GetInfo() << std::endl;
 
-        // 测试图像采集
+        // Test image capture
         cv::Mat frame;
         bool capture_success = camera_.Capture(frame);
         EXPECT_TRUE(capture_success);
         if (capture_success) {
             EXPECT_FALSE(frame.empty());
-            std::cout << "成功采集图像, 分辨率: " 
+            std::cout << "Successfully captured image, resolution: " 
                       << frame.cols << "x" << frame.rows << std::endl;
         }
 
         camera_.Close();
     } else {
-        std::cout << "未能打开USB相机, 请检查连接" << std::endl;
+        std::cout << "Failed to open USB camera, please check connection" << std::endl;
         GTEST_SKIP();
     }
 }
 
-// 测试视频文件读取
+// Test video file reading
 TEST_F(CameraControlTest, TestVideoFile) {
     const std::string test_video = "test/test_video.mp4";
     if (camera_.Open(test_video, -1, -1, -1, CameraSourceType::VIDEO_FILE)) {
         std::cout << camera_.GetInfo() << std::endl;
 
-        // 测试图像读取
+        // Test image reading
         cv::Mat frame;
         bool read_success = camera_.Capture(frame);
         EXPECT_TRUE(read_success);
         if (read_success) {
             EXPECT_FALSE(frame.empty());
-            std::cout << "成功读取视频帧, 分辨率: " 
+            std::cout << "Successfully read video frame, resolution: " 
                       << frame.cols << "x" << frame.rows << std::endl;
         }
         camera_.Close();
     } else {
-        std::cout << "未能打开视频文件: " << test_video << std::endl;
+        std::cout << "Failed to open video file: " << test_video << std::endl;
         GTEST_SKIP();
     }
 }
 
-// 测试华睿相机（目前为预留接口）
+// Test Huarui camera (currently reserved interface)
 TEST_F(CameraControlTest, TestHuaruiCamera) {
     if (camera_.Open("SN123456", 640, 480, 30, CameraSourceType::HUARUI_CAMERA)) {
-        std::cout << "华睿相机信息：" << std::endl;
+        std::cout << "Huarui camera information:" << std::endl;
         std::cout << camera_.GetInfo() << std::endl;
 
-        // 测试图像采集
+        // Test image capture
         cv::Mat frame;
         bool capture_success = camera_.Capture(frame);
         EXPECT_TRUE(capture_success);
         if (capture_success) {
             EXPECT_FALSE(frame.empty());
-            std::cout << "成功采集图像, 分辨率: " 
+            std::cout << "Successfully captured image, resolution: " 
                       << frame.cols << "x" << frame.rows << std::endl;
         }
         camera_.Close();
     } else {
-        std::cout << "华睿相机接口尚未实现" << std::endl;
+        std::cout << "Huarui camera interface not implemented yet" << std::endl;
         GTEST_SKIP();
     }
 }
