@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(RollingBallTracker VERSION 1.0.0)
 
+# 清理之前的构建文件
+if(EXISTS ${CMAKE_BINARY_DIR})
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR})
+endif()
+
 # 设置项目版本信息
 set(BALL_TRACKER_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(BALL_TRACKER_VERSION_MINOR ${PROJECT_VERSION_MINOR})
@@ -16,8 +21,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # 启用测试
 enable_testing()
 
-# 设置基础安装路径
-set(BASE_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist")
+# 设置安装前缀
+if(NOT DEFINED INSTALL_DIR)
+    set(INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist")
+endif()
+set(CMAKE_INSTALL_PREFIX "${INSTALL_DIR}")
 
 # Windows 平台特定配置
 if(WIN32)
@@ -26,6 +34,9 @@ if(WIN32)
     
     # 启用导出宏的生成
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    
+    # 设置UTF-8编码
+    add_compile_options(/utf-8)
 else()
     message(FATAL_ERROR "This project only supports Windows platform")
 endif()
@@ -36,25 +47,18 @@ if(OpenMP_CXX_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# 设置 OpenCV 路径
-set(OpenCV_DIR "C:/opencv/build")
-
 # 查找 OpenCV 包
+set(OpenCV_DIR "C:/Program Files/opencv/build")
 find_package(OpenCV REQUIRED)
 if(NOT OpenCV_FOUND)
     message(FATAL_ERROR "OpenCV not found. Please install OpenCV first.")
 endif()
 
 # 查找 nlohmann_json 包
+set(nlohmann_json_DIR "C:/Users/yjunj/miniconda3/Library/share/cmake/nlohmann_json")
 find_package(nlohmann_json REQUIRED)
 if(NOT nlohmann_json_FOUND)
     message(FATAL_ERROR "nlohmann_json not found. Please install nlohmann_json first.")
-endif()
-
-# 查找 GTest
-find_package(GTest REQUIRED)
-if(NOT GTest_FOUND)
-    message(FATAL_ERROR "GTest not found. Please install GTest first.")
 endif()
 
 # 添加华睿相机SDK
@@ -101,9 +105,9 @@ set_target_properties(ball_tracker PROPERTIES
 # 安装规则
 install(TARGETS ball_tracker
     EXPORT ball_tracker-targets
-    RUNTIME DESTINATION ${BASE_INSTALL_DIR}/bin
-    LIBRARY DESTINATION ${BASE_INSTALL_DIR}/lib
-    ARCHIVE DESTINATION ${BASE_INSTALL_DIR}/lib
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
 )
 
 # 安装头文件
@@ -111,14 +115,20 @@ install(FILES
     include/ball_tracker_interface.h
     include/ball_tracker_common.h
     include/camera_control.h
-    DESTINATION ${BASE_INSTALL_DIR}/include
+    DESTINATION include
+)
+
+# 安装配置文件
+install(DIRECTORY
+    ${CMAKE_SOURCE_DIR}/config/
+    DESTINATION config
 )
 
 # 创建并安装导出文件
 install(EXPORT ball_tracker-targets
     FILE ball_tracker-targets.cmake
     NAMESPACE ball_tracker::
-    DESTINATION ${BASE_INSTALL_DIR}/lib/cmake/ball_tracker
+    DESTINATION lib/cmake/ball_tracker
 )
 
 # 创建并安装配置文件
@@ -132,13 +142,13 @@ write_basic_package_version_file(
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ball_tracker-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
-    INSTALL_DESTINATION ${BASE_INSTALL_DIR}/lib/cmake/ball_tracker
+    INSTALL_DESTINATION lib/cmake/ball_tracker
 )
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/ball_tracker-config-version.cmake"
-    DESTINATION ${BASE_INSTALL_DIR}/lib/cmake/ball_tracker
+    DESTINATION lib/cmake/ball_tracker
 )
 
 # 添加测试子目录
