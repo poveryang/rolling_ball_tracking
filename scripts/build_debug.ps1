@@ -25,7 +25,7 @@ Set-Location "build"
 
 # 配置项目
 Write-Host "配置项目..."
-cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DINSTALL_DIR="$projectRoot/dist/Debug"
 
 # 构建项目
 Write-Host "构建Debug版本..."
@@ -35,5 +35,14 @@ cmake --build . --config Debug
 Write-Host "安装项目..."
 cmake --install . --config Debug
 
+# 解除Windows Defender阻止
+Write-Host "解除Windows Defender阻止..."
+$exePath = "$projectRoot/dist/Debug/bin/camera_control_test.exe"
+if (Test-Path $exePath) {
+    Unblock-File -Path $exePath
+    Write-Host "已解除 $exePath 的阻止"
+}
+
+Set-Location $projectRoot
 Write-Host "Debug构建完成！"
-Write-Host "生成的文件在 dist\debug 目录下" 
+Write-Host "生成的文件在 dist/Debug 目录下" 
