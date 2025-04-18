@@ -102,8 +102,23 @@ set_target_properties(ball_tracker PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-# 安装规则
-install(TARGETS ball_tracker
+# 添加huarui_grab和huarui_video
+add_executable(huarui_grab test/huarui_grab.cpp)
+target_link_libraries(huarui_grab
+    ball_tracker
+    ${OpenCV_LIBS}
+    MVSDKmd
+)
+
+add_executable(huarui_video test/huarui_video.cpp)
+target_link_libraries(huarui_video
+    ball_tracker
+    ${OpenCV_LIBS}
+    MVSDKmd
+)
+
+# 安装目标
+install(TARGETS ball_tracker huarui_grab huarui_video
     EXPORT ball_tracker-targets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

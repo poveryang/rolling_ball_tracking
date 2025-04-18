@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <opencv2/opencv.hpp>
 #include "camera_control.h"
+#include <filesystem>
+#include <thread>
 
 class CameraControlTest : public ::testing::Test {
 protected:
