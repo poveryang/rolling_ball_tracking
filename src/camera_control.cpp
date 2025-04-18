@@ -10,7 +10,8 @@ BallTrackerCamera::BallTrackerCamera()
     , fps_(0)
     , is_open_(false)
     , source_type_(CameraSourceType::USB_CAMERA)
-    , huarui_camera_handle_(nullptr)
+    , dev_handle_(nullptr)
+    , is_grabbing_(false)
 {
 }
 
@@ -52,8 +53,7 @@ bool BallTrackerCamera::Open(const std::string& source, int width, int height, i
             break;
 
         case CameraSourceType::HUARUI_CAMERA:
-            // TODO: 后续实现华睿相机SDK集成
-            success = false;
+            success = InitHuaruiCamera(source);
             break;
 
         default:
@@ -82,7 +82,12 @@ bool BallTrackerCamera::Open(const std::string& source, int width, int height, i
 
 void BallTrackerCamera::Close() {
     if (source_type_ == CameraSourceType::HUARUI_CAMERA) {
-        // TODO: 后续实现华睿相机SDK集成
+        StopGrabbing();
+        if (dev_handle_ != nullptr) {
+            IMV_Close(dev_handle_);
+            IMV_DestroyHandle(dev_handle_);
+            dev_handle_ = nullptr;
+        }
     } else if (cap_.isOpened()) {
         cap_.release();
     }
@@ -99,10 +104,101 @@ bool BallTrackerCamera::Capture(cv::Mat& frame) {
     }
 
     if (source_type_ == CameraSourceType::HUARUI_CAMERA) {
-        // TODO: 后续实现华睿相机SDK集成
+        std::lock_guard<std::mutex> lock(frame_mutex_);
+        if (!current_frame_.empty()) {
+            frame = current_frame_.clone();
+            return true;
+        }
         return false;
     } else {
         return cap_.read(frame);
+    }
+}
+
+bool BallTrackerCamera::InitHuaruiCamera(const std::string& serial_number) {
+    int ret = IMV_OK;
+    
+    // 发现设备
+    IMV_DeviceList deviceInfoList;
+    ret = IMV_EnumDevices(&deviceInfoList, interfaceTypeAll);
+    if (IMV_OK != ret) {
+        return false;
+    }
+
+    // 根据序列号查找设备
+    int cameraIndex = -1;
+    for (unsigned int i = 0; i < deviceInfoList.nDevNum; i++) {
+        if (strcmp(deviceInfoList.pDevInfo[i].serialNumber, serial_number.c_str()) == 0) {
+            cameraIndex = i;
+            break;
+        }
+    }
+
+    if (cameraIndex == -1) {
+        return false;
+    }
+
+    // 创建设备句柄
+    ret = IMV_CreateHandle(&dev_handle_, modeByIndex, (void*)&cameraIndex);
+    if (IMV_OK != ret) {
+        return false;
+    }
+
+    // 打开相机
+    ret = IMV_Open(dev_handle_);
+    if (IMV_OK != ret) {
+        IMV_DestroyHandle(dev_handle_);
+        dev_handle_ = nullptr;
+        return false;
+    }
+
+    // 开始拉流
+    ret = IMV_StartGrabbing(dev_handle_);
+    if (IMV_OK != ret) {
+        IMV_Close(dev_handle_);
+        IMV_DestroyHandle(dev_handle_);
+        dev_handle_ = nullptr;
+        return false;
+    }
+
+    // 创建拉流线程
+    is_grabbing_ = true;
+    grab_thread_ = std::thread(&BallTrackerCamera::GrabThreadFunc, this);
+
+    return true;
+}
+
+void BallTrackerCamera::GrabThreadFunc() {
+    IMV_Frame frame;
+    cv::Mat cv_frame;
+
+    while (is_grabbing_) {
+        int ret = IMV_GetFrame(dev_handle_, &frame, 500);
+        if (IMV_OK != ret) {
+            continue;
+        }
+
+        // 将帧数据转换为OpenCV格式
+        cv_frame = cv::Mat(frame.frameInfo.height, frame.frameInfo.width, 
+                          CV_8UC1, frame.pData);
+
+        {
+            std::lock_guard<std::mutex> lock(frame_mutex_);
+            current_frame_ = cv_frame.clone();
+        }
+
+        // 释放帧数据
+        IMV_ReleaseFrame(dev_handle_, &frame);
+    }
+}
+
+void BallTrackerCamera::StopGrabbing() {
+    if (is_grabbing_) {
+        is_grabbing_ = false;
+        if (grab_thread_.joinable()) {
+            grab_thread_.join();
+        }
+        IMV_StopGrabbing(dev_handle_);
     }
 }
 

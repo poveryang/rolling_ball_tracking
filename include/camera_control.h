@@ -2,8 +2,12 @@
 #define CAMERA_CONTROL_H
 
 #include <string>
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 #include <opencv2/opencv.hpp>
+#include <IMV/IMVApi.h>
 
 #include "ball_tracker_common.h"
 
@@ -81,8 +85,17 @@ private:
     CameraSourceType source_type_;
     std::string source_path_;
     
-    // 华睿相机相关成员（预留接口）
-    void* huarui_camera_handle_;  // 华睿相机句柄
+    // 华睿相机相关成员
+    IMV_HANDLE dev_handle_;           // 相机句柄
+    std::thread grab_thread_;         // 拉流线程
+    std::atomic<bool> is_grabbing_;   // 拉流状态
+    std::mutex frame_mutex_;          // 帧数据互斥锁
+    cv::Mat current_frame_;           // 当前帧
+
+    // 华睿相机私有方法
+    bool InitHuaruiCamera(const std::string& serial_number);
+    void GrabThreadFunc();
+    void StopGrabbing();
 };
 
 #endif // CAMERA_CONTROL_H 

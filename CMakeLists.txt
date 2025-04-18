@@ -26,6 +26,8 @@ if(WIN32)
     
     # 启用导出宏的生成
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+else()
+    message(FATAL_ERROR "This project only supports Windows platform")
 endif()
 
 # 查找OpenMP
@@ -35,13 +37,7 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 # 设置 OpenCV 路径
-if(WIN32)
-    # Windows 平台下的 OpenCV 路径
-    set(OpenCV_DIR "C:/opencv/build")
-elseif(APPLE)
-    # macOS 平台下的 OpenCV 路径（如果使用 Homebrew 安装）
-    set(OpenCV_DIR "/opt/homebrew/share/cmake/opencv4")
-endif()
+set(OpenCV_DIR "C:/opencv/build")
 
 # 查找 OpenCV 包
 find_package(OpenCV REQUIRED)
@@ -55,16 +51,16 @@ if(NOT nlohmann_json_FOUND)
     message(FATAL_ERROR "nlohmann_json not found. Please install nlohmann_json first.")
 endif()
 
-# 设置 GTest 路径
-if(APPLE)
-    set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.16.0/lib/cmake/GTest")
-endif()
-
 # 查找 GTest
 find_package(GTest REQUIRED)
 if(NOT GTest_FOUND)
     message(FATAL_ERROR "GTest not found. Please install GTest first.")
 endif()
+
+# 添加华睿相机SDK
+set(MV_CAM_SDK_DIR ${CMAKE_SOURCE_DIR}/third_party/mv_cam_sdk)
+include_directories(${MV_CAM_SDK_DIR}/Include)
+link_directories(${MV_CAM_SDK_DIR}/Lib/x64)
 
 # 收集源文件
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
@@ -93,19 +89,14 @@ target_link_libraries(ball_tracker
         ${OpenCV_LIBS}
         nlohmann_json::nlohmann_json
         OpenMP::OpenMP_CXX
+        MVSDKmd
 )
 
 # 设置输出目录
-if(WIN32)
-    set_target_properties(ball_tracker PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    )
-else()
-    set_target_properties(ball_tracker PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    )
-endif()
+set_target_properties(ball_tracker PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+)
 
 # 安装规则
 install(TARGETS ball_tracker
