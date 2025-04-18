@@ -12,3 +12,6 @@
 
 # 忽略 dist 目录及其所有内容
 /dist/
+
+# 忽略轨迹文件
+config/trajectory.json
