@@ -5,9 +5,10 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
-#include <IMV/IMVApi.h>
+#include "IMV/IMVApi.h"
 
 #include "ball_tracker_common.h"
 
@@ -19,6 +20,15 @@ enum class CameraSourceType {
     HUARUI_CAMERA,  // 华睿相机
     USB_CAMERA,     // USB免驱相机
     VIDEO_FILE      // 视频文件
+};
+
+struct CameraDeviceInfo {
+    std::string vendor_name;
+    std::string model_name;
+    std::string serial_number;
+    std::string camera_name;
+    std::string ip_address;  // 仅GigE相机有效
+    int camera_type;  // 0: GigE, 1: U3V, 2: CL, 3: PCIe
 };
 
 /**
@@ -76,6 +86,12 @@ public:
     int GetHeight() const { return height_; }
     int GetFps() const { return fps_; }
 
+    // 枚举所有可用的华睿相机设备
+    static bool EnumHuaruiDevices(std::vector<CameraDeviceInfo>& device_list);
+
+    // 通过索引打开华睿相机
+    bool OpenByIndex(int index, int width = 640, int height = 480, int fps = 30);
+
 private:
     cv::VideoCapture cap_;
     int width_;
@@ -91,11 +107,6 @@ private:
     std::atomic<bool> is_grabbing_;   // 拉流状态
     std::mutex frame_mutex_;          // 帧数据互斥锁
     cv::Mat current_frame_;           // 当前帧
-
-    // 华睿相机私有方法
-    bool InitHuaruiCamera(const std::string& serial_number);
-    void GrabThreadFunc();
-    void StopGrabbing();
 };
 
 #endif // CAMERA_CONTROL_H 
