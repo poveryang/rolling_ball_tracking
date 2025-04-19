@@ -107,6 +107,8 @@ private:
     std::atomic<bool> is_grabbing_;   // 拉流状态
     std::mutex frame_mutex_;          // 帧数据互斥锁
     cv::Mat current_frame_;           // 当前帧
+    unsigned char* dst_buffer_;       // 预分配的输出缓冲区
+    unsigned int dst_buffer_size_;    // 输出缓冲区大小
 };
 
 #endif // CAMERA_CONTROL_H 

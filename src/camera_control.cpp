@@ -13,11 +13,17 @@ BallTrackerCamera::BallTrackerCamera()
     , source_type_(CameraSourceType::USB_CAMERA)
     , dev_handle_(nullptr)
     , is_grabbing_(false)
+    , dst_buffer_(nullptr)
+    , dst_buffer_size_(0)
 {
 }
 
 BallTrackerCamera::~BallTrackerCamera() {
     Close();
+    if (dst_buffer_ != nullptr) {
+        free(dst_buffer_);
+        dst_buffer_ = nullptr;
+    }
 }
 
 bool BallTrackerCamera::Open(const std::string& source, int width, int height, int fps, CameraSourceType source_type) {
@@ -123,6 +129,22 @@ bool BallTrackerCamera::Capture(cv::Mat& frame) {
         }
         auto get_frame_time = std::chrono::high_resolution_clock::now();
 
+        // 检查是否需要重新分配缓冲区
+        unsigned int required_size = sizeof(unsigned char) * mv_frame.frameInfo.width * mv_frame.frameInfo.height * 3;
+        if (dst_buffer_ == nullptr || dst_buffer_size_ < required_size) {
+            if (dst_buffer_ != nullptr) {
+                free(dst_buffer_);
+            }
+            dst_buffer_ = (unsigned char*)malloc(required_size);
+            if (nullptr == dst_buffer_) {
+                std::cerr << "Failed to allocate memory for converted image" << std::endl;
+                IMV_ReleaseFrame(dev_handle_, &mv_frame);
+                return false;
+            }
+            dst_buffer_size_ = required_size;
+        }
+        auto alloc_time = std::chrono::high_resolution_clock::now();
+
         // 设置转换参数
         IMV_PixelConvertParam stPixelConvertParam;
         memset(&stPixelConvertParam, 0, sizeof(stPixelConvertParam));
@@ -133,39 +155,26 @@ bool BallTrackerCamera::Capture(cv::Mat& frame) {
         stPixelConvertParam.nSrcDataLen = mv_frame.frameInfo.size;
         stPixelConvertParam.nPaddingX = mv_frame.frameInfo.paddingX;
         stPixelConvertParam.nPaddingY = mv_frame.frameInfo.paddingY;
-        stPixelConvertParam.eBayerDemosaic = demosaicNearestNeighbor;
-        stPixelConvertParam.eDstPixelFormat = gvspPixelBGR8;  // 转换为BGR8格式
-
-        // 计算转换后的图像大小
-        unsigned int nDstBufSize = sizeof(unsigned char) * mv_frame.frameInfo.width * mv_frame.frameInfo.height * 3;
-        unsigned char* pDstBuf = (unsigned char*)malloc(nDstBufSize);
-        if (nullptr == pDstBuf) {
-            std::cerr << "Failed to allocate memory for converted image" << std::endl;
-            IMV_ReleaseFrame(dev_handle_, &mv_frame);
-            return false;
-        }
-        auto alloc_time = std::chrono::high_resolution_clock::now();
-
-        stPixelConvertParam.pDstBuf = pDstBuf;
-        stPixelConvertParam.nDstBufSize = nDstBufSize;
+        stPixelConvertParam.eBayerDemosaic = demosaicEdgeSensing;  // 使用更快的双线性插值算法
+        stPixelConvertParam.eDstPixelFormat = gvspPixelBGR8;
+        stPixelConvertParam.pDstBuf = dst_buffer_;
+        stPixelConvertParam.nDstBufSize = dst_buffer_size_;
 
         // 执行转换
         ret = IMV_PixelConvert(dev_handle_, &stPixelConvertParam);
         if (IMV_OK != ret) {
             std::cerr << "Failed to convert image format, error code: " << ret << std::endl;
-            free(pDstBuf);
             IMV_ReleaseFrame(dev_handle_, &mv_frame);
             return false;
         }
         auto convert_time = std::chrono::high_resolution_clock::now();
 
-        // 创建OpenCV图像
+        // 创建OpenCV图像（使用浅拷贝）
         frame = cv::Mat(mv_frame.frameInfo.height, mv_frame.frameInfo.width, 
-                      CV_8UC3, pDstBuf).clone();  // 深拷贝
+                      CV_8UC3, dst_buffer_);
         auto create_cv_time = std::chrono::high_resolution_clock::now();
 
-        // 释放内存
-        free(pDstBuf);
+        // 释放帧数据
         IMV_ReleaseFrame(dev_handle_, &mv_frame);
         auto end_time = std::chrono::high_resolution_clock::now();
 
