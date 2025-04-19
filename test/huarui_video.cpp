@@ -78,7 +78,6 @@ private:
     void WriteThread() {
         std::chrono::high_resolution_clock::time_point last_frame_time;
         bool is_first_frame = true;
-        double actual_fps = target_fps_;
 
         while (true) {
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -112,13 +111,6 @@ private:
                 writer_->write(data.frame);
                 written_frames_++;
                 last_frame_time = data.timestamp;
-
-                // 计算实际FPS
-                auto current_time = std::chrono::high_resolution_clock::now();
-                auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time_).count();
-                if (elapsed > 0) {
-                    actual_fps = written_frames_ / static_cast<double>(elapsed);
-                }
             }
         }
     }
@@ -188,15 +180,9 @@ int main(int argc, char** argv) {
             writer.AddFrame(frame, frame_count);
             frame_count++;
             
-            // 计算并显示当前帧率
-            auto current_time = std::chrono::high_resolution_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count();
-            if (elapsed > 0) {
-                double fps = frame_count / static_cast<double>(elapsed);
-                std::cout << "\rFrames: " << frame_count 
-                          << ", FPS: " << std::fixed << std::setprecision(2) << fps
-                          << ", Capture time: " << capture_duration.count() << "ms" << std::flush;
-            }
+            // 显示当前帧数和采集时间
+            std::cout << "\rFrames: " << frame_count 
+                      << ", Capture time: " << capture_duration.count() << "ms\n" << std::flush;
         } else {
             std::cerr << "Failed to capture frame" << std::endl;
             break;
@@ -211,7 +197,14 @@ int main(int argc, char** argv) {
     // 关闭相机
     camera.Close();
     
+    // 计算总时长和视频时长
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto total_duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
+    double video_duration = frame_count / 30.0;  // 30fps
+    
     std::cout << "Recording completed. Total frames: " << frame_count << std::endl;
+    std::cout << "Total duration: " << total_duration << " seconds" << std::endl;
+    std::cout << "Video duration: " << std::fixed << std::setprecision(2) << video_duration << " seconds" << std::endl;
     std::cout << "Video saved to: " << output_file << std::endl;
 
     return 0;

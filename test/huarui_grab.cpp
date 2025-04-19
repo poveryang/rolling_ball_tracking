@@ -131,8 +131,8 @@ int main(int argc, char** argv) {
             std::string filename = save_dir + "/image_" + std::to_string(i) + ".png";
             image_saver.AddImage(frame, filename, i);
             
-            std::cout << "Captured image " << i + 1 << "/" << num_images 
-                      << " (capture: " << capture_duration.count() << "ms)" << std::endl;
+            std::cout << "\rFrames: " << i + 1 << "/" << num_images 
+                      << ", Capture time: " << capture_duration.count() << "ms\n" << std::flush;
         } else {
             std::cerr << "Failed to capture image " << i + 1 << std::endl;
         }
